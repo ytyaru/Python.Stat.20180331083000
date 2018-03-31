@@ -4,7 +4,7 @@ sys.path.append(str(pathlib.Path(__file__).parent.parent / 'src'))
 from Stat import Stat
 import unittest
 
-class DirectoryTest(unittest.TestCase):
+class StatTest(unittest.TestCase):
     def __MakeDummy(self, path, size):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'wb') as f:
@@ -47,6 +47,29 @@ class DirectoryTest(unittest.TestCase):
         target_dummy = os.path.join(target_root, 'a.dummy')
         self.__MakeDummy(target_dummy, 1024)
         self.assertEqual(1024, Stat.GetSize(target_dummy))
+
+    def test_DiskUsage(self):
+        target_root = '/tmp/work/__TEST__'
+        target_dummy = os.path.join(target_root, 'a.dummy')
+        self.__MakeDummy(target_dummy, 1024)
+        self.assertTrue(hasattr(Stat, 'DiskUsage'))
+        res = Stat.DiskUsage(target_dummy)
+        self.assertTrue(hasattr(res, 'total'))
+        self.assertTrue(hasattr(res, 'used'))
+        self.assertTrue(hasattr(res, 'free'))
+        print(Stat.DiskUsage(target_dummy))
+
+    def test_Mode_Get_Set(self):
+        target_root = '/tmp/work/__TEST__'
+        target_dummy = os.path.join(target_root, 'a.dummy')
+        self.__MakeDummy(target_dummy, 1024)
+        mode = Stat.GetMode(target_dummy)
+        print(mode)
+        print(oct(mode))
+        Stat.SetMode(target_dummy, 0o644)
+        print(mode)
+        print(oct(mode))
+
 
 
 if __name__ == '__main__':

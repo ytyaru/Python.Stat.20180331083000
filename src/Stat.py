@@ -34,7 +34,8 @@ class Stat:
         elif type(mode) == str:
             cls.__SetModeFromName(path, mode)
     @classmethod
-    def GetMode(cls, path): return oct(os.stat(path).st_mode)
+    def GetMode(cls, path): return os.stat(path).st_mode
+    #def GetMode(cls, path): return oct(os.stat(path).st_mode)
     @classmethod
     def GetModeName(cls, path): return stat.filemode(os.stat(path).st_mode)
     # -rwxrwxrwx
