@@ -1,4 +1,4 @@
-import os, os.path, pathlib, shutil
+import os, os.path, pathlib, shutil, stat
 import functools
 
 class Stat:
@@ -16,11 +16,6 @@ class Stat:
         prepend = functools.partial(os.path.join, p)
         return sum([(os.path.getsize(f) if os.path.isfile(f) and not os.path.islink(f) else getFolderSize(f)) for f in map(prepend, os.listdir(p))])
 
-    #@classmethod
-    #def GetDirectorySize_ByScanDir(cls, path):
-    #    return sum([s.stat(follow_symlinks=False).st_size for s in os.scandir(path) if s.is_file(follow_symlinks=False)]) + \
-    #    + sum([getTotFldrSize(s.path) for s in scandir(path) if s.is_dir(follow_symlinks=False)])
-
     @classmethod
     def GetDirectorySize_ByScanDir(cls, path):
         with os.scandir(path) as scand:
@@ -37,13 +32,11 @@ class Stat:
             pathlib.Path(path).chmod(mode)
         # -rwxrwxrwx のような文字列
         elif type(mode) == str:
-            cls.__SetModeFromName(mode)
+            cls.__SetModeFromName(path, mode)
     @classmethod
-    def GetMode(cls, path):
-        return oct(os.stat(path).st_mode)
+    def GetMode(cls, path): return oct(os.stat(path).st_mode)
     @classmethod
-    def GetModeName(cls, path):
-        return stat.filemode(cls.GetMode(path))
+    def GetModeName(cls, path): return stat.filemode(os.stat(path).st_mode)
     # -rwxrwxrwx
     @classmethod
     def __SetModeFromName(cls, path, mode_name):
@@ -60,14 +53,16 @@ class Stat:
             'rwx'
         ]
         try:
-            owner = [i for i, n in enumerate(node_names) if n == mname[0:3]][0]
-            group = [i for i, n in enumerate(node_names) if n == mname[3:6]][0]
-            other = [i for i, n in enumerate(node_names) if n == mname[6:9]][0]
-            return oct(str(owner)+str(group)+str(other))
+            owner = [i for i, n in enumerate(mode_names) if n == mname[0:3]][0]
+            group = [i for i, n in enumerate(mode_names) if n == mname[3:6]][0]
+            other = [i for i, n in enumerate(mode_names) if n == mname[6:9]][0]
+            cls.SetMode(path, int('0{}{}{}'.format(owner, group, other), base=8))
+            #cls.SetMode(path, int('0o{}{}{}'.format(owner, group, other)))
+            #return oct(str(owner)+str(group)+str(other))
         except:
-            import trackback
-            trackback.print_exc()
-            raise Exception('引数mode_nameは\'-rwxrwxrwx\'の書式で入力してください。owner, group, other, の順に次のパターンのいずれかを指定します。pattern={}。r,w,xはそれぞれ、読込、書込、実行の権限です。-は権限なしを意味します。'.format(mode_names))
+            import traceback
+            traceback.print_exc()
+            raise Exception('引数mode_nameが不正値です。{}。\'-rwxrwxrwx\'の書式で入力してください。owner, group, other, の順に次のパターンのいずれかを指定します。pattern={}。r,w,xはそれぞれ、読込、書込、実行の権限です。-は権限なしを意味します。'.format(mode_name, mode_names))
 
     # epock
     @classmethod
@@ -80,11 +75,11 @@ class Stat:
         os.utime(path, (os.stat(path).st_atime, mtime))
 
     @classmethod
-    def GetAccessDateTime(cls, path):
+    def GetAccessedDateTime(cls, path):
         return os.stat(path).st_atime
         #return os.path.getatime(path)
     @classmethod
-    def SetAccessDateTime(cls, path, atime):
+    def SetAccessedDateTime(cls, path, atime):
         os.utime(path, (atime, os.stat(path).st_mtime))
 
     @classmethod
@@ -92,14 +87,11 @@ class Stat:
         return os.stat(path).st_ctime
         #return os.path.getctime(path)
     @classmethod
-    def GetCreateDateTime(cls, path):
-        if 'posix' == os.name:
-            return os.stat(path).st_birthtime
-        elif 'nt' == os.name:
-            return os.stat(path).st_ctime
-        else:
-            return os.stat(path).st_ctime
-
+    def GetCreatedDateTime(cls, path):
+        s = os.stat(path)
+        if hasattr(s, 'st_birthtime'): return s.st_birthtime
+        else: return s.st_ctime
+        
     @classmethod
     def GetOwnUserId(cls, path): return os.stat(path).st_uid
     @classmethod
@@ -107,7 +99,7 @@ class Stat:
     @classmethod
     def GetHardLinkNum(cls, path): return os.stat(path).st_nlink
     @classmethod
-    def GetINode(cls, path): return os.stat(path).st_inode
+    def GetINode(cls, path): return os.stat(path).st_ino
     @classmethod
     def GetDeviceId(cls, path): return os.stat(path).st_dev
 
