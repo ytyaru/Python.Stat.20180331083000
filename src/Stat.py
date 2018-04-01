@@ -51,8 +51,8 @@ class Stat:
     def GetSize(cls, path):
         if os.path.isfile(path): return os.path.getsize(path)
         elif os.path.isdir(path):
-            if hasattr(os, 'scandir'): cls.GetDirectorySize_ByScanDir(path) # Python 3.5
-            elif hasattr(os,'listdir'): cls.GetDirectorySize_ByListDir(path)
+            if hasattr(os, 'scandir'): return cls.GetDirectorySize_ByScanDir(path) # Python 3.5
+            elif hasattr(os,'listdir'): return cls.GetDirectorySize_ByListDir(path)
             else: raise Exception('ディレクトリのサイズを計測するメソッドが見つかりません。')
             
     # https://code.i-harness.com/ja/q/153f1d
