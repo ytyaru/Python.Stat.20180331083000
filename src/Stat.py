@@ -5,7 +5,7 @@ import time, datetime
 class Stat:
     def __init__(self, path):
         self.__path = path
-        if not os.path.exists(str(self.__path)): return ValueError('引数pathには存在するファイルかディレクトリを指定してください。')
+        if not os.path.exists(str(self.__path)): raise ValueError('引数pathには存在するファイルかディレクトリを指定してください。')
         self.__stat = os.stat(self.__path)
     @property
     def Stat(self): return self.__stat
