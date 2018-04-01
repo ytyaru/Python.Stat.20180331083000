@@ -3,6 +3,50 @@ import functools
 import time, datetime
 
 class Stat:
+    def __init__(self, path):
+        self.__path = path
+        if not os.path.exists(str(self.__path)): return ValueError('引数pathには存在するファイルかディレクトリを指定してください。')
+        self.__stat = os.stat(self.__path)
+    @property
+    def Stat(self): return self.__stat
+    @property
+    def Path(self): return self.__path
+    @property
+    def Size(self): return self.GetSize(self.Path)
+
+    @property
+    def Mode(self): return self.GetMode(self.Path)
+    @Mode.setter
+    def Mode(self, v): self.SetMode(self.Path, v)
+    @property
+    def ModeName(self): return self.GetModeName(self.Path)
+
+    @property
+    def Modified(self): return self.GetModified(self.Path)
+    @Modified.setter
+    def Modified(self, v): self.SetModified(self.Path, v)
+
+    @property
+    def Accessed(self): return self.GetAccessed(self.Path)
+    @Accessed.setter
+    def Accessed(self, v): self.SetAccessed(self.Path, v)
+
+    @property
+    def Created(self): return self.GetCreated(self.Path)
+    @property
+    def ChangedMeta(self): return self.GetChangedMeta(self.Path)
+
+    @property
+    def OwnUserId(self): return self.GetOwnUserId(self.Path)
+    @property
+    def OwnGroupId(self): return self.GetOwnGroupId(self.Path)
+    @property
+    def HardLinkNum(self): return self.GetHardLinkNum(self.Path)
+    @property
+    def INode(self): return self.GetINode(self.Path)
+    @property
+    def DeviceId(self): return self.GetDeviceId(self.Path)
+
     @classmethod
     def GetSize(cls, path):
         if os.path.isfile(path): return os.path.getsize(path)
@@ -62,24 +106,24 @@ class Stat:
 
     # epock
     @classmethod
-    def GetModifiedDateTime(cls, path):
+    def GetModified(cls, path):
         return cls.__GetTimeFromEpoch(os.stat(path).st_mtime)
     @classmethod
-    def SetModifiedDateTime(cls, path, mtime):
+    def SetModified(cls, path, mtime):
         os.utime(path, (os.stat(path).st_atime, cls.__ToEpoch(mtime)))
 
     @classmethod
-    def GetAccessedDateTime(cls, path):
+    def GetAccessed(cls, path):
         return cls.__GetTimeFromEpoch(os.stat(path).st_atime)
     @classmethod
-    def SetAccessedDateTime(cls, path, atime):
+    def SetAccessed(cls, path, atime):
         os.utime(path, (cls.__ToEpoch(atime), os.stat(path).st_mtime))
 
     @classmethod
-    def GetChangedMetaDataDateTime(cls, path):
+    def GetChangedMeta(cls, path):
         return cls.__GetTimeFromEpoch(os.stat(path).st_ctime)
     @classmethod
-    def GetCreatedDateTime(cls, path):
+    def GetCreated(cls, path):
         s = os.stat(path)
         if hasattr(s, 'st_birthtime'): return cls.__GetTimeFromEpoch(s.st_birthtime)
         else: return cls.__GetTimeFromEpoch(s.st_ctime)
@@ -99,7 +143,7 @@ class Stat:
         else: raise TypeError('引数mtimeはint型のエポックタイム値、time型、datetime型, strkk型のいずれかにしてください。')
 
     @classmethod
-    def __StrToDateTime(cls, value):
+    def __StrTo(cls, value):
         formats = ['%Y-%m-%d %H:%M:%S',
                    '%Y/%m/%d %H:%M:%S',
                    '%Y/%m/%d %H:%M:%S%z',# +0900
