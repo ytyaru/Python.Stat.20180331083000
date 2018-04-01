@@ -36,10 +36,8 @@ class Stat:
             cls.__SetModeFromName(path, mode)
     @classmethod
     def GetMode(cls, path): return os.stat(path).st_mode
-    #def GetMode(cls, path): return oct(os.stat(path).st_mode)
     @classmethod
     def GetModeName(cls, path): return stat.filemode(os.stat(path).st_mode)
-    # -rwxrwxrwx
     @classmethod
     def __SetModeFromName(cls, path, mode_name):
         mname = mode_name.strip()
@@ -59,47 +57,32 @@ class Stat:
             group = [i for i, n in enumerate(mode_names) if n == mname[3:6]][0]
             other = [i for i, n in enumerate(mode_names) if n == mname[6:9]][0]
             cls.SetMode(path, int('0{}{}{}'.format(owner, group, other), base=8))
-            #cls.SetMode(path, int('0o{}{}{}'.format(owner, group, other)))
-            #return oct(str(owner)+str(group)+str(other))
         except:
-            #import traceback
-            #traceback.print_exc()
             raise ValueError('引数mode_nameが不正値です。\'{}\'。\'-rwxrwxrwx\'の書式で入力してください。owner, group, other, の順に次のパターンのいずれかを指定します。pattern={}。r,w,xはそれぞれ、読込、書込、実行の権限です。-は権限なしを意味します。'.format(mode_name, mode_names))
 
     # epock
     @classmethod
     def GetModifiedDateTime(cls, path):
         return cls.__GetTimeFromEpoch(os.stat(path).st_mtime)
-        #return os.stat(path).st_mtime
-        #return os.path.getmtime(path)
-
     @classmethod
     def SetModifiedDateTime(cls, path, mtime):
         os.utime(path, (os.stat(path).st_atime, cls.__ToEpoch(mtime)))
-        
+
     @classmethod
     def GetAccessedDateTime(cls, path):
         return cls.__GetTimeFromEpoch(os.stat(path).st_atime)
-        #return os.stat(path).st_atime
-        #return os.path.getatime(path)
     @classmethod
     def SetAccessedDateTime(cls, path, atime):
         os.utime(path, (cls.__ToEpoch(atime), os.stat(path).st_mtime))
-        #os.utime(path, (atime, os.stat(path).st_mtime))
 
     @classmethod
     def GetChangedMetaDataDateTime(cls, path):
         return cls.__GetTimeFromEpoch(os.stat(path).st_ctime)
-        #return os.stat(path).st_ctime
-        #return os.path.getctime(path)
     @classmethod
     def GetCreatedDateTime(cls, path):
         s = os.stat(path)
         if hasattr(s, 'st_birthtime'): return cls.__GetTimeFromEpoch(s.st_birthtime)
         else: return cls.__GetTimeFromEpoch(s.st_ctime)
-        #if hasattr(s, 'st_birthtime'): return s.st_birthtime
-        #else: return s.st_ctime
-
 
     @classmethod
     def __GetTimeFromEpoch(cls, epoch):
@@ -113,7 +96,6 @@ class Stat:
         elif type(value) == datetime.datetime: return int(time.mktime(value.timetuple()))
         elif type(value) == str:
             return int(time.mktime(cls.__StrToDateTime(value).timetuple()))
-        #else type(value) == str: return int(time.mktime(datetime.datetime.strptime(value).timetuple()))
         else: raise TypeError('引数mtimeはint型のエポックタイム値、time型、datetime型, strkk型のいずれかにしてください。')
 
     @classmethod
