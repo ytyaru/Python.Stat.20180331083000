@@ -58,14 +58,13 @@ class Stat:
     # https://code.i-harness.com/ja/q/153f1d
     @classmethod
     def GetDirectorySize_ByListDir(cls, path):
-        prepend = functools.partial(os.path.join, p)
-        return sum([(os.path.getsize(f) if os.path.isfile(f) and not os.path.islink(f) else getFolderSize(f)) for f in map(prepend, os.listdir(p))])
+        prepend = functools.partial(os.path.join, path)
+        return sum([(os.path.getsize(f) if os.path.isfile(f) and not os.path.islink(f) else cls.GetDirectorySize_ByListDir(f)) for f in map(prepend, os.listdir(path))])
 
     @classmethod
     def GetDirectorySize_ByScanDir(cls, path):
-        with os.scandir(path) as scand:
-            return sum([s.stat(follow_symlinks=False).st_size for s in scand if s.is_file(follow_symlinks=False)]) + \
-            + sum([getTotFldrSize(s.path) for s in scand if s.is_dir(follow_symlinks=False)])
+        return sum([s.stat(follow_symlinks=False).st_size for s in os.scandir(path) if s.is_file(follow_symlinks=False)]) + \
+        + sum([cls.GetDirectorySize_ByScanDir(s.path) for s in os.scandir(path) if s.is_dir(follow_symlinks=False)])
 
     @classmethod
     def DiskUsage(cls, path): return shutil.disk_usage(path)
