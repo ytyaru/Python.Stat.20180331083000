@@ -117,10 +117,7 @@ class StatTest(unittest.TestCase):
         self.assertTrue(dt1 == Stat.GetModifiedDateTime(target_dummy)[1])
         self.assertTrue(dt1 != Stat.GetChangedMetaDataDateTime(target_dummy)[1])
         self.assertTrue(dt1 != Stat.GetAccessedDateTime(target_dummy)[1])
-        
         os.remove(target_dummy)
-        """
-        """
 
     def test_AccessedDateTime_Get_Set(self):
         target_root = '/tmp/work/__TEST__'
@@ -131,8 +128,6 @@ class StatTest(unittest.TestCase):
         self.assertTrue(2 == len(Stat.GetAccessedDateTime(target_dummy)))
         self.assertTrue(float == type(Stat.GetAccessedDateTime(target_dummy)[0]))
         self.assertTrue(datetime.datetime == type(Stat.GetAccessedDateTime(target_dummy)[1]))
-        #print(type(Stat.GetModifiedDateTime(target_dummy)[0]))
-        #print(type(Stat.GetModifiedDateTime(target_dummy)[1]))
         dt1 = datetime.datetime.strptime('1999/12/31 23:59:59', '%Y/%m/%d %H:%M:%S')
         dt2 = datetime.datetime.strptime('2345/01/02 12:34:56', '%Y/%m/%d %H:%M:%S')
         epoch, dt = Stat.GetAccessedDateTime(target_dummy)
@@ -144,8 +139,27 @@ class StatTest(unittest.TestCase):
         self.assertTrue(dt1 == Stat.GetAccessedDateTime(target_dummy)[1])
         self.assertTrue(dt1 != Stat.GetModifiedDateTime(target_dummy)[1])
         self.assertTrue(dt1 != Stat.GetChangedMetaDataDateTime(target_dummy)[1])
-        
         os.remove(target_dummy)
+
+    def test_GetChangedMetaDataDateTime(self):
+        target_root = '/tmp/work/__TEST__'
+        target_dummy = os.path.join(target_root, 'a.dummy')
+        self.__MakeDummy(target_dummy, 1024)
+
+        print(Stat.GetChangedMetaDataDateTime(target_dummy))
+        print(Stat.GetCreatedDateTime(target_dummy))
+        os.remove(target_dummy)
+
+    def test_Ids(self):
+        target_root = '/tmp/work/__TEST__'
+        target_dummy = os.path.join(target_root, 'a.dummy')
+        self.__MakeDummy(target_dummy, 1024)
+        print(Stat.GetOwnUserId(target_dummy))
+        print(Stat.GetOwnGroupId(target_dummy))
+        print(Stat.GetHardLinkNum(target_dummy))
+        print(Stat.GetINode(target_dummy))
+        print(Stat.GetDeviceId(target_dummy))
+
 
 if __name__ == '__main__':
     unittest.main()
