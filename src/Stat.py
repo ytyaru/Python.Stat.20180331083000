@@ -1,5 +1,6 @@
 import os, os.path, pathlib, shutil, stat
 import functools
+import time, datetime
 
 class Stat:
     @classmethod
@@ -61,38 +62,72 @@ class Stat:
             #cls.SetMode(path, int('0o{}{}{}'.format(owner, group, other)))
             #return oct(str(owner)+str(group)+str(other))
         except:
-            import traceback
-            traceback.print_exc()
-            raise Exception('引数mode_nameが不正値です。{}。\'-rwxrwxrwx\'の書式で入力してください。owner, group, other, の順に次のパターンのいずれかを指定します。pattern={}。r,w,xはそれぞれ、読込、書込、実行の権限です。-は権限なしを意味します。'.format(mode_name, mode_names))
+            #import traceback
+            #traceback.print_exc()
+            raise ValueError('引数mode_nameが不正値です。\'{}\'。\'-rwxrwxrwx\'の書式で入力してください。owner, group, other, の順に次のパターンのいずれかを指定します。pattern={}。r,w,xはそれぞれ、読込、書込、実行の権限です。-は権限なしを意味します。'.format(mode_name, mode_names))
 
     # epock
     @classmethod
     def GetModifiedDateTime(cls, path):
-        return os.stat(path).st_mtime
+        return cls.__GetTimeFromEpoch(os.stat(path).st_mtime)
+        #return os.stat(path).st_mtime
         #return os.path.getmtime(path)
 
     @classmethod
     def SetModifiedDateTime(cls, path, mtime):
-        os.utime(path, (os.stat(path).st_atime, mtime))
-
+        os.utime(path, (os.stat(path).st_atime, cls.__ToEpoch(mtime)))
+        
     @classmethod
     def GetAccessedDateTime(cls, path):
-        return os.stat(path).st_atime
+        return cls.__GetTimeFromEpoch(os.stat(path).st_atime)
+        #return os.stat(path).st_atime
         #return os.path.getatime(path)
     @classmethod
     def SetAccessedDateTime(cls, path, atime):
-        os.utime(path, (atime, os.stat(path).st_mtime))
+        os.utime(path, (cls.__ToEpoch(atime), os.stat(path).st_mtime))
+        #os.utime(path, (atime, os.stat(path).st_mtime))
 
     @classmethod
     def GetChangedMetaDataDateTime(cls, path):
-        return os.stat(path).st_ctime
+        return cls.__GetTimeFromEpoch(os.stat(path).st_ctime)
+        #return os.stat(path).st_ctime
         #return os.path.getctime(path)
     @classmethod
     def GetCreatedDateTime(cls, path):
         s = os.stat(path)
-        if hasattr(s, 'st_birthtime'): return s.st_birthtime
-        else: return s.st_ctime
-        
+        if hasattr(s, 'st_birthtime'): return cls.__GetTimeFromEpoch(s.st_birthtime)
+        else: return cls.__GetTimeFromEpoch(s.st_ctime)
+        #if hasattr(s, 'st_birthtime'): return s.st_birthtime
+        #else: return s.st_ctime
+
+
+    @classmethod
+    def __GetTimeFromEpoch(cls, epoch):
+        return epoch, datetime.datetime(*time.localtime(epoch)[:6])
+ 
+    @classmethod
+    def __ToEpoch(cls, value):
+        if type(value) == int: return value
+        if type(value) == float: return value
+        elif type(value) == time: return value.localtime()
+        elif type(value) == datetime.datetime: return int(time.mktime(value.timetuple()))
+        elif type(value) == str:
+            return int(time.mktime(cls.__StrToDateTime(value).timetuple()))
+        #else type(value) == str: return int(time.mktime(datetime.datetime.strptime(value).timetuple()))
+        else: raise TypeError('引数mtimeはint型のエポックタイム値、time型、datetime型, strkk型のいずれかにしてください。')
+
+    @classmethod
+    def __StrToDateTime(cls, value):
+        formats = ['%Y-%m-%d %H:%M:%S',
+                   '%Y/%m/%d %H:%M:%S',
+                   '%Y/%m/%d %H:%M:%S%z',# +0900
+                   '%Y-%m-%d %H:%M:%S%z'
+        ]
+        for f in formats:
+            try: return datetime.datetime.strptime(value)
+            except: continue
+        raise ValueError('引数値\'{}\'は日付に変換できませんでした。次の書式のいずれかにしてください。formats={}'.format(formats))
+
     @classmethod
     def GetOwnUserId(cls, path): return os.stat(path).st_uid
     @classmethod
